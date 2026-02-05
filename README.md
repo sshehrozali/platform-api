@@ -114,9 +114,115 @@ Returned when request validation fails (e.g., invalid parameter values, missing 
 
 ---
 
+### Get Provision Status
+
+Retrieves the current status and details of a provisioning request.
+
+**Endpoint:** `GET /v1/provision/status/{id}`
+
+#### Request
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | UUID | Yes | Unique identifier of the provisioning request |
+
+**Example Request:**
+```
+GET /v1/provision/status/550e8400-e29b-41d4-a716-446655440000
+```
+
+#### Response
+
+**Success Response**
+
+**Status Code:** `200 OK`
+
+**Response Schema:**
+```json
+{
+  "status": "string",
+  "completed_at": "string",
+  "details": {
+    "gke_cluster_id": "string",
+    "cloud_sql_connection": "string",
+    "vpc_name": "string",
+    "vpc_subnet": "string"
+  }
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Current status of the provisioning operation | `in progress`, `ready`, `failed` |
+| `completed_at` | string | ISO 8601 timestamp when provisioning completed (null if still in progress) |
+| `details` | object | Provisioned infrastructure details (null if status is `in progress` or `failed`) |
+| `details.gke_cluster_id` | string | GKE cluster identifier |
+| `details.cloud_sql_connection` | string | Cloud SQL connection string |
+| `details.vpc_name` | string | VPC network name |
+| `details.vpc_subnet` | string | VPC subnet name |
+
+**Example Response (In Progress):**
+```json
+{
+  "status": "in progress",
+  "completed_at": null,
+  "details": null
+}
+```
+
+**Example Response (Ready):**
+```json
+{
+  "status": "ready",
+  "completed_at": "2024-01-15T10:45:00Z",
+  "details": {
+    "gke_cluster_id": "projects/my-project/locations/us-central1/clusters/my-cluster",
+    "cloud_sql_connection": "my-project:us-central1:my-db-instance",
+    "vpc_name": "my-vpc-network",
+    "vpc_subnet": "my-vpc-subnet"
+  }
+}
+```
+
+**Example Response (Failed):**
+```json
+{
+  "status": "failed",
+  "completed_at": "2024-01-15T10:40:00Z",
+  "details": null
+}
+```
+
+**Error Response**
+
+**Status Code:** `404 Not Found`
+
+Returned when the provisioning request with the given ID is not found.
+
+**Response Schema:**
+```json
+{
+  "message": "string"
+}
+```
+
+**Example Response:**
+```json
+{
+  "message": "provisioning request not found"
+}
+```
+
+---
+
 ## Example Usage
 
-### cURL
+### Provision Infrastructure
+
 ```bash
 curl -X POST http://localhost:8080/v1/provision/new \
   -H "Content-Type: application/json" \
@@ -126,4 +232,10 @@ curl -X POST http://localhost:8080/v1/provision/new \
     "node_count": 3,
     "db_engine": "postgres"
   }'
+```
+
+### Get Provision Status
+
+```bash
+curl -X GET http://localhost:8080/v1/provision/status/550e8400-e29b-41d4-a716-446655440000
 ```
