@@ -31,7 +31,8 @@ Content-Type: application/json
   "size": "string",
   "cluster_name": "string",
   "node_count": "integer",
-  "db_engine": "string"
+  "db_engine": "string",
+  "created_by": "string"
 }
 ```
 
@@ -43,6 +44,7 @@ Content-Type: application/json
 | `cluster_name` | string | Yes | Name for the GKE cluster | Alphanumeric, hyphens, underscores (GCP naming rules) |
 | `node_count` | integer | Yes | Number of nodes in the GKE cluster | Positive integer |
 | `db_engine` | string | Yes | Database engine for Cloud SQL | `postgres`, `mysql`, `sqlserver` |
+| `created_by` | string | Yes | User identifier who created the provisioning request | Alphanumeric string |
 
 **Example Request:**
 ```json
@@ -50,7 +52,8 @@ Content-Type: application/json
   "size": "medium",
   "cluster_name": "production-cluster-001",
   "node_count": 3,
-  "db_engine": "postgres"
+  "db_engine": "postgres",
+  "created_by": "john.doe"
 }
 ```
 
@@ -144,6 +147,7 @@ GET /v1/provision/status/550e8400-e29b-41d4-a716-446655440000
 {
   "status": "string",
   "completed_at": "string",
+  "created_by": "string",
   "details": {
     "gke_cluster_id": "string",
     "cloud_sql_connection": "string",
@@ -159,6 +163,7 @@ GET /v1/provision/status/550e8400-e29b-41d4-a716-446655440000
 |-------|------|-------------|
 | `status` | string | Current status of the provisioning operation | `in progress`, `ready`, `failed` |
 | `completed_at` | string | ISO 8601 timestamp when provisioning completed (null if still in progress) |
+| `created_by` | string | User identifier who created the provisioning request |
 | `details` | object | Provisioned infrastructure details (null if status is `in progress` or `failed`) |
 | `details.gke_cluster_id` | string | GKE cluster identifier |
 | `details.cloud_sql_connection` | string | Cloud SQL connection string |
@@ -170,6 +175,7 @@ GET /v1/provision/status/550e8400-e29b-41d4-a716-446655440000
 {
   "status": "in progress",
   "completed_at": null,
+  "created_by": "john.doe",
   "details": null
 }
 ```
@@ -179,6 +185,7 @@ GET /v1/provision/status/550e8400-e29b-41d4-a716-446655440000
 {
   "status": "ready",
   "completed_at": "2024-01-15T10:45:00Z",
+  "created_by": "john.doe",
   "details": {
     "gke_cluster_id": "projects/my-project/locations/us-central1/clusters/my-cluster",
     "cloud_sql_connection": "my-project:us-central1:my-db-instance",
@@ -193,6 +200,7 @@ GET /v1/provision/status/550e8400-e29b-41d4-a716-446655440000
 {
   "status": "failed",
   "completed_at": "2024-01-15T10:40:00Z",
+  "created_by": "john.doe",
   "details": null
 }
 ```
@@ -230,7 +238,8 @@ curl -X POST http://localhost:8080/v1/provision/new \
     "size": "medium",
     "cluster_name": "my-cluster",
     "node_count": 3,
-    "db_engine": "postgres"
+    "db_engine": "postgres",
+    "created_by": "john.doe"
   }'
 ```
 
