@@ -1,10 +1,7 @@
 package com.platform.api;
 
 import com.platform.api.dto.ProvisionState;
-import com.pulumi.automation.ConfigValue;
-import com.pulumi.automation.LocalWorkspace;
-import com.pulumi.automation.UpOptions;
-import com.pulumi.automation.UpResult;
+import com.pulumi.automation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,6 +34,15 @@ public class PulumiRunner {
                 stack.setConfig("gcp:project", new ConfigValue("authlete-techexe-20260205-01"));
                 stack.setConfig("gcp:region", new ConfigValue("us-central1"));
 
+                try {
+                    logger.info("[{}]: running pulumi refresh...", provisionId);
+                    stack.refresh(RefreshOptions.builder()
+                            .onStandardOutput(output -> logger.info("[pulumi refresh]: {}", output))
+                            .build());
+                } catch (Exception e) {
+                    logger.warn("[{}]: pulumi refresh failed (continuing with up): {}", provisionId, e.getMessage());
+                }
+
                 // Run 'up'
                 logger.info("[{}]: running pulumi up...", provisionId);
                 UpResult result = stack.up(UpOptions.builder()
@@ -54,6 +60,7 @@ public class PulumiRunner {
                 logger.info("provision id = {} marked as {} in db", provisionId.toString(), provisionRecord.getProvisionState().toString());
 
             } catch (Exception e) {
+                logger.error("[{}]: Pulumi failed: {} - {}", provisionId, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "no cause", e);
                 throw new PulumiRunnerException("Error while running pulumi: ", e);
             }
         });
