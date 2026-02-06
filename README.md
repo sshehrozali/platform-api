@@ -31,6 +31,7 @@ Content-Type: application/json
   "size": "string",
   "cluster_name": "string",
   "node_count": "integer",
+  "db_name": "string",
   "db_engine": "string",
   "created_by": "string"
 }
@@ -43,6 +44,7 @@ Content-Type: application/json
 | `size` | string | Yes | Environment size tier | `small`, `medium`, `large` |
 | `cluster_name` | string | Yes | Name for the GKE cluster | Alphanumeric, hyphens, underscores (GCP naming rules) |
 | `node_count` | integer | Yes | Number of nodes in the GKE cluster | Positive integer |
+| `db_name` | string | Yes | Name for the Cloud SQL database instance | Alphanumeric, hyphens (GCP naming rules) |
 | `db_engine` | string | Yes | Database engine for Cloud SQL | `postgres`, `mysql`, `sqlserver` |
 | `created_by` | string | Yes | User identifier who created the provisioning request | Alphanumeric string |
 
@@ -52,6 +54,7 @@ Content-Type: application/json
   "size": "medium",
   "cluster_name": "production-cluster-001",
   "node_count": 3,
+  "db_name": "my-database",
   "db_engine": "postgres",
   "created_by": "john.doe"
 }
@@ -238,6 +241,7 @@ curl -X POST http://localhost:8080/v1/provision/new \
     "size": "medium",
     "cluster_name": "my-cluster",
     "node_count": 3,
+    "db_name": "my-database",
     "db_engine": "postgres",
     "created_by": "john.doe"
   }'
