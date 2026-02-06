@@ -28,6 +28,7 @@ public class ProvisionController {
         var id = provisionService.create(request.size(),
                 request.cluster_name(),
                 request.node_count(),
+                request.db_name(),
                 request.db_engine(),
                 request.created_by());
 

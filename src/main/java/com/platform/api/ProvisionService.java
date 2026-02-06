@@ -16,13 +16,16 @@ public class ProvisionService {
         this.pulumiRunner = pulumiRunner;
     }
 
-    public UUID create(String size, String clusterName, Integer nodeCount, String dbEngine, String createdBy) {
+    public UUID create(String size, String clusterName, Integer nodeCount, String dbName, String dbEngine, String createdBy) {
         var provisionId = UUID.randomUUID();
         provisionRespository.save(new Provision(provisionId, ProvisionState.IN_PROGRESS));
 
         var cf = mapToComputeEngine(size);
-        pulumiRunner.createGKECluster(
-                provisionId, clusterName, cf, nodeCount, createdBy
+        var dbTier = mapToDbInstanceTier(size);
+
+        // Submit Pulumi IaC job in background
+        pulumiRunner.createGKEAndCloudSql(
+                provisionId, clusterName, cf, nodeCount, dbName, dbEngine, dbTier, createdBy
         );
 
         return provisionId;
@@ -34,6 +37,15 @@ public class ProvisionService {
             case "medium" -> "e2-medium";   // 2 vCPU, 4 GiB
             case "large"  -> "e2-standard-4"; // 4 vCPU, 16 GiB
             default       -> "e2-medium";
+        };
+    }
+
+    private String mapToDbInstanceTier(String size) {
+        return switch (size) {
+            case "small"  -> "db-f1-micro";   // shared-core
+            case "medium" -> "db-g1-small";   // shared-core, more CPU/RAM
+            case "large"  -> "db-custom-2-7680"; // 2 vCPU, ~7.5 GiB (example custom)
+            default       -> "db-g1-small";
         };
     }
 }
