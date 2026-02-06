@@ -1,4 +1,4 @@
-package com.platform;
+package com.platform.api;
 
 import com.platform.api.dto.ProvisionState;
 import jakarta.persistence.*;
