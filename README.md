@@ -8,6 +8,18 @@ The Platform Provisioning API is a RESTful service that provisions infrastructur
 
 **API Version:** `v1`
 
+### Architecture (high-level)
+
+The API processes provisioning **asynchronously**: it accepts the request, returns immediately with a `202 Accepted` and a `provisionId`, and runs the actual GCP provisioning in the background.
+
+1. **Request & response** — The user calls `POST /v1/provision/new`. `ProvisionController` returns `202` with `provisionId` and status `IN_PROGRESS`.
+2. **Validation & state** — `ProvisionService` validates parameters, persists a row with `IN_PROGRESS` and the `provisionId`, then returns the id and triggers the runner.
+3. **Background job** — `PulumiRunner` enqueues the work in an executor; a worker picks it up.
+4. **Infrastructure** — The runner uses `InfrastructureCode` (Pulumi) to define the desired GKE cluster and Cloud SQL instance, then runs `pulumi refresh` and `pulumi up` to create/update them in GCP.
+5. **Completion** — On success, the runner updates the database for that `provisionId` to `READY`.
+
+![Provisioning architecture](assets/architecture.png)
+
 ---
 
 ## Endpoints
