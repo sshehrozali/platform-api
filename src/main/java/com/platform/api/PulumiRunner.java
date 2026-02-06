@@ -54,10 +54,10 @@ public class PulumiRunner {
                         result.outputs().get("cluster-name").value());
 
                 var provisionRecord = provisionRespository.findByProvisionId(provisionId);
-                provisionRecord.setProvisionState(ProvisionState.READY);
+                provisionRecord.setProvisionState(ProvisionState.READY.name());
                 provisionRespository.save(provisionRecord);
 
-                logger.info("provision id = {} marked as {} in db", provisionId.toString(), provisionRecord.getProvisionState().toString());
+                logger.info("provision id = {} marked as {} in db", provisionId.toString(), provisionRecord.getProvisionState());
 
             } catch (Exception e) {
                 logger.error("[{}]: Pulumi failed: {} - {}", provisionId, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "no cause", e);

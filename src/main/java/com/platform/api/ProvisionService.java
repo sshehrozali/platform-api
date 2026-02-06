@@ -18,7 +18,7 @@ public class ProvisionService {
 
     public UUID create(String size, String clusterName, Integer nodeCount, String dbName, String dbEngine, String createdBy) {
         var provisionId = UUID.randomUUID();
-        provisionRespository.save(new Provision(provisionId, ProvisionState.IN_PROGRESS));
+        provisionRespository.save(new Provision(provisionId, ProvisionState.IN_PROGRESS.name()));
 
         var cf = mapToComputeEngine(size);
         var dbTier = mapToDbInstanceTier(size);

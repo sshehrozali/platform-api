@@ -1,6 +1,5 @@
 package com.platform.api;
 
-import com.platform.api.dto.ProvisionState;
 import jakarta.persistence.*;
 
 import java.util.UUID;
@@ -12,7 +11,7 @@ public class Provision {
     public Provision() {
     }
 
-    public Provision(UUID provisionId, ProvisionState state) {
+    public Provision(UUID provisionId, String state) {
         this.provisionId = provisionId;
         this.provisionState = state;
     }
@@ -26,13 +25,13 @@ public class Provision {
     private UUID provisionId;
 
     @Column(nullable = false)
-    private ProvisionState provisionState;
+    private String provisionState;
 
-    public void setProvisionState(ProvisionState provisionState) {
+    public void setProvisionState(String provisionState) {
         this.provisionState = provisionState;
     }
 
-    public ProvisionState getProvisionState() {
+    public String getProvisionState() {
         return provisionState;
     }
 }
