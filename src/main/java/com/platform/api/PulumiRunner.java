@@ -20,7 +20,7 @@ public class PulumiRunner {
     private final InfrastructureCode infrastructureCode;
     private final ProvisionRespository provisionRespository;
 
-    private final ExecutorService runner = Executors.newSingleThreadExecutor();
+    private final ExecutorService runner = Executors.newFixedThreadPool(8);
 
     public PulumiRunner(InfrastructureCode infrastructureCode, ProvisionRespository provisionRespository) {
         this.infrastructureCode = infrastructureCode;
@@ -28,9 +28,16 @@ public class PulumiRunner {
     }
 
     public void createGKECluster(UUID provisionId, String clusterName, String computeFamily, Integer nodeCount, String createdBy) {
+        long requestTime = System.currentTimeMillis(); // Time user hit the API
+
         runner.submit(() -> {
             logger.info("queuing new task to create GKE cluster {} by {}...", clusterName, createdBy);
             try {
+                long startTime = System.currentTimeMillis(); // Time thread actually picked up the task
+                long queueWaitTime = (startTime - requestTime) / 1000;
+
+                logger.info("Task for {} started. Sat in queue for {} seconds.", clusterName, queueWaitTime);
+
                 var stack = LocalWorkspace.createOrSelectStack("test",
                         "dev", context -> infrastructureCode.buildGKECluster(context, clusterName, computeFamily, nodeCount));
 
@@ -40,12 +47,16 @@ public class PulumiRunner {
                 // Run 'up'
                 logger.info("running pulumi up for GKE cluster creation = {}", clusterName);
                 UpResult result = stack.up(UpOptions.builder()
-                        .onStandardOutput(output -> System.out.println())
+                        .onStandardOutput(output -> logger.info("[pulumi]: {}", output))
                         .build());
 
+                long endTime = System.currentTimeMillis();
+                long totalTime = (endTime - requestTime) / 60000;
+                logger.info("Cluster {} READY. Total time from request: {} mins", clusterName, totalTime);
+
                 logger.info("GKE cluster {} successfully provisioned\n{} {}",
-                        clusterName, result.outputs().get("cluster-id"),
-                        result.outputs().get("cluster-name"));
+                        clusterName, result.outputs().get("cluster-id").value(),
+                        result.outputs().get("cluster-name").value());
 
                 var provisionRecord = provisionRespository.findByProvisionId(provisionId);
                 provisionRecord.setProvisionState(ProvisionState.READY);
