@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+
 @Service
 public class PulumiRunner {
 
@@ -22,6 +23,10 @@ public class PulumiRunner {
     public PulumiRunner(InfrastructureCode infrastructureCode, ProvisionRespository provisionRespository) {
         this.infrastructureCode = infrastructureCode;
         this.provisionRespository = provisionRespository;
+    }
+
+    private static String str(OutputValue ov) {
+        return ov == null ? null : String.valueOf(ov.value());
     }
 
     public void createGKEAndCloudSql(UUID provisionId, String clusterName, String computeFamily, Integer nodeCount, String dbName, String dbEngine, String dbTier, String createdBy) {
@@ -49,13 +54,17 @@ public class PulumiRunner {
                         .onStandardOutput(output -> logger.info("[pulumi]: {}", output))
                         .build());
 
-                logger.info("[{}]: pulumi up finished!  \n{} {}",
-                        provisionId, result.outputs().get("cluster-id").value(),
-                        result.outputs().get("cluster-name").value());
-
                 var provisionRecord = provisionRespository.findByProvisionId(provisionId);
                 provisionRecord.setProvisionState(ProvisionState.READY.name());
+                var out = result.outputs();
+                provisionRecord.setClusterId(str(out.get("cluster-id")));
+                provisionRecord.setClusterName(str(out.get("cluster-name")));
+                provisionRecord.setDbInstanceName(str(out.get("db-instance-name")));
+                provisionRecord.setDbConnectionName(str(out.get("db-connection-name")));
                 provisionRespository.save(provisionRecord);
+
+                logger.info("[{}]: pulumi up finished!  \n{} {}",
+                        provisionId, provisionRecord.getClusterId(), provisionRecord.getClusterName());
 
                 logger.info("provision id = {} marked as {} in db", provisionId.toString(), provisionRecord.getProvisionState());
 

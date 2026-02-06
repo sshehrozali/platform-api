@@ -3,6 +3,7 @@ package com.platform.api;
 import com.platform.api.dto.ProvisionState;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -18,7 +19,7 @@ public class ProvisionService {
 
     public UUID create(String size, String clusterName, Integer nodeCount, String dbName, String dbEngine, String createdBy) {
         var provisionId = UUID.randomUUID();
-        provisionRespository.save(new Provision(provisionId, ProvisionState.IN_PROGRESS.name()));
+        provisionRespository.save(new Provision(provisionId, ProvisionState.IN_PROGRESS.name(), createdBy));
 
         var cf = mapToComputeEngine(size);
         var dbTier = mapToDbInstanceTier(size);
@@ -29,6 +30,10 @@ public class ProvisionService {
         );
 
         return provisionId;
+    }
+
+    public Optional<Provision> getByProvisionId(UUID provisionId) {
+        return Optional.ofNullable(provisionRespository.findByProvisionId(provisionId));
     }
 
     private String mapToComputeEngine(String size) {
