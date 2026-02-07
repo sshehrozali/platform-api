@@ -1,11 +1,15 @@
 package com.platform.api.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record ProvisionNewRequest(
-        String size,
-        String cluster_name,
-        Integer node_count,
-        String db_name,
-        String db_engine,
-        String created_by
+        @NotBlank String size,
+        @NotBlank String cluster_name,
+        @NotNull @Min(1) Integer node_count,
+        @NotBlank String db_name,
+        @NotBlank String db_engine,
+        @NotBlank String created_by
 ) {
 }

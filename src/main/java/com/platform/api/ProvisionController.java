@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -28,7 +30,7 @@ public class ProvisionController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<ProvisionNewResponse> create(@RequestBody ProvisionNewRequest request) throws AutomationException {
+    public ResponseEntity<ProvisionNewResponse> create(@RequestBody @Valid ProvisionNewRequest request) throws AutomationException {
         var id = provisionService.create(request.size(),
                 request.cluster_name(),
                 request.node_count(),
