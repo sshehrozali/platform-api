@@ -1,0 +1,8 @@
+{
+  "size": "small",
+  "cluster_name": "shehroz-cluster-1",
+  "node_count": 1,
+  "db_engine": "POSTGRES_15",
+  "db_name": "my-database-test-1",
+  "created_by": "shehroz"
+}

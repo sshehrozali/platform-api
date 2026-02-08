@@ -1,0 +1,54 @@
+# Build and deploy to Cloud Run
+# For gcloud builds submit: _IMAGE_TAG defaults to latest. PROJECT_ID is auto-set by Cloud Build.
+substitutions:
+  _REGION: us-central1
+  _SERVICE_NAME: platform-api
+  _IMAGE_TAG: latest
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/platform-api/api:${_IMAGE_TAG}
+      - .
+    id: build
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/platform-api/api:${_IMAGE_TAG}
+    id: push
+    waitFor: [build]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/platform-api/api:${_IMAGE_TAG}
+      - --region
+      - ${_REGION}
+      - --platform
+      - managed
+      - --service-account
+      - platform-api@${PROJECT_ID}.iam.gserviceaccount.com
+      - --allow-unauthenticated
+      - --memory
+      - 2Gi
+      - --cpu
+      - "2"
+      - --timeout
+      - "3600"
+      - --no-cpu-throttling
+      - --min-instances
+      - "1"
+      - --set-env-vars
+      - PULUMI_BACKEND_URL=file:///app/pulumi-state,PULUMI_CONFIG_PASSPHRASE=local-testing
+    id: deploy
+    waitFor: [push]
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/platform-api/api:${_IMAGE_TAG}
